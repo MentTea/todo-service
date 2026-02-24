@@ -1,0 +1,71 @@
+package com.simplesystem.todoservice.api.impl;
+
+import com.simplesystem.todoservice.api.TodosApi;
+import com.simplesystem.todoservice.api.model.CreateTodoDto;
+import com.simplesystem.todoservice.api.model.TodoItemDto;
+import com.simplesystem.todoservice.api.model.UpdateDescriptionDto;
+import com.simplesystem.todoservice.mapper.TodoMapper;
+import com.simplesystem.todoservice.service.TodoService;
+import lombok.RequiredArgsConstructor;
+import lombok.val;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@RestController
+@RequiredArgsConstructor
+public class TodosController implements TodosApi {
+
+    private final TodoService todoService;
+    private final TodoMapper todoMapper;
+
+    @Override
+    public ResponseEntity<TodoItemDto> createTodo(CreateTodoDto createTodoDto) {
+        val created = todoService.createTodo(createTodoDto.getDescription(), createTodoDto.getDueAt());
+        val body = todoMapper.toDto(created);
+        val location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(created.getId())
+                .toUri();
+        return ResponseEntity.created(location).body(body);
+    }
+
+    @Override
+    public ResponseEntity<TodoItemDto> getTodoById(Long id) {
+        val item = todoService.getTodo(id);
+        return ResponseEntity.ok(todoMapper.toDto(item));
+    }
+
+    @Override
+    public ResponseEntity<List<TodoItemDto>> listTodos(String status) {
+        val onlyNotDone = "not_done".equalsIgnoreCase(status);
+        val items = todoService.listTodos(onlyNotDone)
+                .stream()
+                .map(todoMapper::toDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(items);
+    }
+
+    @Override
+    public ResponseEntity<TodoItemDto> updateDescription(Long id, UpdateDescriptionDto updateDescriptionDto) {
+        val updated = todoService.updateDescription(id, updateDescriptionDto.getDescription());
+        return ResponseEntity.ok(todoMapper.toDto(updated));
+    }
+
+    @Override
+    public ResponseEntity<TodoItemDto> markDone(Long id) {
+        val updated = todoService.markDone(id);
+        return ResponseEntity.ok(todoMapper.toDto(updated));
+    }
+
+    @Override
+    public ResponseEntity<TodoItemDto> markNotDone(Long id) {
+        val updated = todoService.markNotDone(id);
+        return ResponseEntity.ok(todoMapper.toDto(updated));
+    }
+}
+

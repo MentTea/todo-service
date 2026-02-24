@@ -11,5 +11,5 @@ public interface TodoItemRepository extends JpaRepository<TodoItem, Long> {
 
     List<TodoItem> findByStatusAndDueAtBefore(TodoStatus status, OffsetDateTime before);
 
+    List<TodoItem> findByStatus(TodoStatus status);
 }
-
