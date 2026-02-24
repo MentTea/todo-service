@@ -46,13 +46,19 @@ paths:
       summary: List todo items
       parameters:
         - in: query
-          name: status
-          description: Filter by status (not_done for only not completed items, all for all items)
+          name: statuses
           required: false
+          description: |
+            Filter todos by status. Currently supported values: `not_done`.
+            Omit or leave empty to return all items.
+            Accepts multiple values for future extensibility.
           schema:
-            type: string
-            enum: [not_done, all]
-            default: all
+            type: array
+            items:
+              type: string
+            default: [ ]
+          style: form
+          explode: true
       responses:
         '200':
           description: List of todo items

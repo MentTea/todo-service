@@ -45,8 +45,8 @@ public class TodoServiceImpl implements TodoService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TodoItem> listTodos(boolean onlyNotDone) {
-        if (onlyNotDone) {
+    public List<TodoItem> listTodos(List<TodoStatus> statuses) {
+        if (statuses.contains(TodoStatus.NOT_DONE)) {
             return repository.findByStatus(TodoStatus.NOT_DONE);
         }
         return repository.findAll();

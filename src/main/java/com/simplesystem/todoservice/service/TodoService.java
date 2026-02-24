@@ -1,6 +1,7 @@
 package com.simplesystem.todoservice.service;
 
 import com.simplesystem.todoservice.model.TodoItem;
+import com.simplesystem.todoservice.model.TodoStatus;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -11,7 +12,7 @@ public interface TodoService {
 
     TodoItem getTodo(Long id);
 
-    List<TodoItem> listTodos(boolean onlyNotDone);
+    List<TodoItem> listTodos(List<TodoStatus> statuses);
 
     TodoItem updateDescription(Long id, String description);
 
