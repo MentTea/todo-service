@@ -1,0 +1,269 @@
+openapi: 3.0.3
+info:
+  title: Todo Service API
+  version: 1.0.0
+  description: Contract-first API for managing todo items.
+
+servers:
+  - url: /api
+
+paths:
+  /todos:
+    post:
+      tags:
+        - todos
+      operationId: createTodo
+      summary: Create a new todo item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTodoRequest'
+      responses:
+        '201':
+          description: Todo item created
+          headers:
+            Location:
+              description: URL of the created resource
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoItem'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      tags:
+        - todos
+      operationId: listTodos
+      summary: List todo items
+      parameters:
+        - in: query
+          name: status
+          description: Filter by status
+          required: false
+          schema:
+            type: string
+            enum: [not_done, all]
+            default: all
+      responses:
+        '200':
+          description: List of todo items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TodoItem'
+
+  /todos/{id}:
+    get:
+      tags:
+        - todos
+      operationId: getTodoById
+      summary: Get todo item by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Todo item found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoItem'
+        '404':
+          description: Todo item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /todos/{id}/description:
+    put:
+      tags:
+        - todos
+      operationId: updateDescription
+      summary: Update description of a todo item
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDescriptionRequest'
+      responses:
+        '200':
+          description: Description updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoItem'
+        '404':
+          description: Todo item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Cannot change description of past due item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /todos/{id}/done:
+    post:
+      tags:
+        - todos
+      operationId: markDone
+      summary: Mark a todo item as done
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Todo item marked as done
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoItem'
+        '404':
+          description: Todo item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Cannot mark past due item as done
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /todos/{id}/undo:
+    post:
+      tags:
+        - todos
+      operationId: undo
+      summary: Undo completion of a todo item
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Todo item undone
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoItem'
+        '404':
+          description: Todo item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Cannot undo a past due item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    TodoStatus:
+      type: string
+      description: Status of the todo item
+      enum:
+        - not_done
+        - done
+        - past_due
+
+    TodoItem:
+      type: object
+      required:
+        - id
+        - description
+        - status
+        - createdAt
+      properties:
+        id:
+          type: integer
+          format: int64
+        description:
+          type: string
+          minLength: 1
+        status:
+          $ref: '#/components/schemas/TodoStatus'
+        createdAt:
+          type: string
+          format: date-time
+        dueAt:
+          type: string
+          format: date-time
+          nullable: true
+        doneAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    CreateTodoRequest:
+      type: object
+      required:
+        - description
+      properties:
+        description:
+          type: string
+          minLength: 1
+        dueAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    UpdateDescriptionRequest:
+      type: object
+      required:
+        - description
+      properties:
+        description:
+          type: string
+          minLength: 1
+
+    ErrorResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+        code:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
