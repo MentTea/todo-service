@@ -84,7 +84,7 @@ class TodosControllerIntegrationTest {
         done.setDueAt(OffsetDateTime.now().plusDays(1));
         repository.save(done);
 
-        mockMvc.perform(get("/todos").param("status", "not_done"))
+        mockMvc.perform(get("/todos").param("statuses", "not_done"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].description").value("Not done"));
@@ -107,7 +107,7 @@ class TodosControllerIntegrationTest {
         mockMvc.perform(post("/todos/{id}/done", item.getId()))
                 .andExpect(status().isConflict());
 
-        mockMvc.perform(post("/todos/{id}/undo", item.getId()))
+        mockMvc.perform(post("/todos/{id}/not-done", item.getId()))
                 .andExpect(status().isConflict());
     }
 

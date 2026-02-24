@@ -16,7 +16,7 @@ public interface TodoMapper {
 
     @Mapping(target = "status", qualifiedByName = "mapApiStatus")
     @Mapping(target = "doneAt", qualifiedByName = "mapJsonNullable")
-    TodoItemDto toDto(TodoItem entity);
+    TodoItemDto mapToDto(TodoItem entity);
 
     @Named("mapApiStatus")
     default TodoStatusDto mapApiStatus(TodoStatus status) {
