@@ -5,7 +5,8 @@ info:
   description: Contract-first API for managing todo items.
 
 servers:
-  - url: /api
+  - url: /api/v1
+    description: Relative path (for API gateway)
 
 paths:
   /todos:
@@ -19,7 +20,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateTodoRequest'
+              $ref: '#/components/schemas/CreateTodoDto'
       responses:
         '201':
           description: Todo item created
@@ -31,7 +32,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TodoItem'
+                $ref: '#/components/schemas/TodoItemDto'
         '400':
           description: Validation error
           content:
@@ -46,7 +47,7 @@ paths:
       parameters:
         - in: query
           name: status
-          description: Filter by status
+          description: Filter by status (not_done for only not completed items, all for all items)
           required: false
           schema:
             type: string
@@ -60,8 +61,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/TodoItem'
-
+                  $ref: '#/components/schemas/TodoItemDto'
   /todos/{id}:
     get:
       tags:
@@ -81,14 +81,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TodoItem'
+                $ref: '#/components/schemas/TodoItemDto'
         '404':
           description: Todo item not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-
   /todos/{id}/description:
     put:
       tags:
@@ -107,14 +106,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateDescriptionRequest'
+              $ref: '#/components/schemas/UpdateDescriptionDto'
       responses:
         '200':
           description: Description updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TodoItem'
+                $ref: '#/components/schemas/TodoItemDto'
         '404':
           description: Todo item not found
           content:
@@ -127,7 +126,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-
   /todos/{id}/done:
     post:
       tags:
@@ -147,7 +145,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TodoItem'
+                $ref: '#/components/schemas/TodoItemDto'
         '404':
           description: Todo item not found
           content:
@@ -160,13 +158,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-
-  /todos/{id}/undo:
+  /todos/{id}/not-done:
     post:
       tags:
         - todos
-      operationId: undo
-      summary: Undo completion of a todo item
+      operationId: markNotDone
+      summary: Mark a todo item as not done
       parameters:
         - in: path
           name: id
@@ -176,11 +173,11 @@ paths:
             format: int64
       responses:
         '200':
-          description: Todo item undone
+          description: Todo item not done
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TodoItem'
+                $ref: '#/components/schemas/TodoItemDto'
         '404':
           description: Todo item not found
           content:
@@ -193,24 +190,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-
 components:
   schemas:
-    TodoStatus:
+    TodoStatusDto:
       type: string
       description: Status of the todo item
       enum:
         - not_done
         - done
         - past_due
-
-    TodoItem:
+    TodoItemDto:
       type: object
       required:
         - id
         - description
         - status
         - createdAt
+        - dueAt
       properties:
         id:
           type: integer
@@ -219,23 +215,22 @@ components:
           type: string
           minLength: 1
         status:
-          $ref: '#/components/schemas/TodoStatus'
+          $ref: '#/components/schemas/TodoStatusDto'
         createdAt:
           type: string
           format: date-time
         dueAt:
           type: string
           format: date-time
-          nullable: true
         doneAt:
           type: string
           format: date-time
           nullable: true
-
-    CreateTodoRequest:
+    CreateTodoDto:
       type: object
       required:
         - description
+        - dueAt
       properties:
         description:
           type: string
@@ -243,9 +238,7 @@ components:
         dueAt:
           type: string
           format: date-time
-          nullable: true
-
-    UpdateDescriptionRequest:
+    UpdateDescriptionDto:
       type: object
       required:
         - description
@@ -258,12 +251,16 @@ components:
       type: object
       required:
         - message
+        - code
+        - timestamp
       properties:
         message:
           type: string
+          description: Error message describing what went wrong
         code:
           type: string
+          description: Error code for programmatic handling
         timestamp:
           type: string
           format: date-time
-
+          description: When the error occurred
