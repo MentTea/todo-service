@@ -3,15 +3,11 @@ server:
     context-path: /api/v1
 
 spring:
-  application:
-    name: '@project.name@'
-    description: '@project.description@'
-    version: '@project.version@'
   datasource:
     url: jdbc:h2:mem:todos;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
     username: simple
-    password: 
+    password:
   jpa:
     hibernate:
       ddl-auto: update
@@ -33,9 +29,3 @@ springdoc:
     path: /swagger-ui
   api-docs:
     path: /api-docs
-
-info:
-  app:
-    name: ${spring.application.name}
-    description: ${spring.application.description}
-    version: ${spring.application.version}
