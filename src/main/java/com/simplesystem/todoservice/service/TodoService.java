@@ -14,11 +14,9 @@ public interface TodoService {
 
     List<TodoItem> listTodos(List<TodoStatus> statuses);
 
+    TodoItem updateStatus(Long id, TodoStatus statusToUpdate);
+
     TodoItem updateDescription(Long id, String description);
-
-    TodoItem markDone(Long id);
-
-    TodoItem markNotDone(Long id);
 
     int markPastDueItems(OffsetDateTime now);
 }

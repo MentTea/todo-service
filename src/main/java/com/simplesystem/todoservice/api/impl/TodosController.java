@@ -4,6 +4,7 @@ import com.simplesystem.todoservice.api.TodosApi;
 import com.simplesystem.todoservice.api.model.CreateTodoDto;
 import com.simplesystem.todoservice.api.model.TodoItemDto;
 import com.simplesystem.todoservice.api.model.UpdateDescriptionDto;
+import com.simplesystem.todoservice.api.model.UpdateStatusDto;
 import com.simplesystem.todoservice.mapper.TodoMapper;
 import com.simplesystem.todoservice.service.TodoService;
 import lombok.RequiredArgsConstructor;
@@ -50,20 +51,15 @@ public class TodosController implements TodosApi {
     }
 
     @Override
+    public ResponseEntity<TodoItemDto> updateStatus(Long id, UpdateStatusDto updateStatusDto) {
+        val statusToUpdate = todoMapper.mapToStatus(updateStatusDto.getStatus());
+        val updated = todoService.updateStatus(id, statusToUpdate);
+        return ResponseEntity.ok(todoMapper.mapToDto(updated));
+    }
+
+    @Override
     public ResponseEntity<TodoItemDto> updateDescription(Long id, UpdateDescriptionDto updateDescriptionDto) {
         val updated = todoService.updateDescription(id, updateDescriptionDto.getDescription());
-        return ResponseEntity.ok(todoMapper.mapToDto(updated));
-    }
-
-    @Override
-    public ResponseEntity<TodoItemDto> markDone(Long id) {
-        val updated = todoService.markDone(id);
-        return ResponseEntity.ok(todoMapper.mapToDto(updated));
-    }
-
-    @Override
-    public ResponseEntity<TodoItemDto> markNotDone(Long id) {
-        val updated = todoService.markNotDone(id);
         return ResponseEntity.ok(todoMapper.mapToDto(updated));
     }
 }

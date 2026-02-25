@@ -45,11 +45,11 @@ class TodosControllerIntegrationTest {
     @Test
     void createAndGetTodo_success() throws Exception {
         val payload = """
-            {
-              "description": "Test todo",
-              "dueAt": "2030-01-01T10:00:00Z"
-            }
-            """;
+                {
+                  "description": "Test todo",
+                  "dueAt": "2030-01-01T10:00:00Z"
+                }
+                """;
 
         val response = mockMvc.perform(post("/todos")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -99,15 +99,19 @@ class TodosControllerIntegrationTest {
         item.setDueAt(OffsetDateTime.now().minusDays(1));
         item = repository.save(item);
 
-        mockMvc.perform(put("/todos/{id}/description", item.getId())
+        mockMvc.perform(patch("/todos/{id}/description", item.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"description\":\"new\"}"))
                 .andExpect(status().isConflict());
 
-        mockMvc.perform(post("/todos/{id}/done", item.getId()))
+        mockMvc.perform(patch("/todos/{id}/status", item.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"done\"}"))
                 .andExpect(status().isConflict());
 
-        mockMvc.perform(post("/todos/{id}/not-done", item.getId()))
+        mockMvc.perform(patch("/todos/{id}/status", item.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"not_done\"}"))
                 .andExpect(status().isConflict());
     }
 

@@ -94,8 +94,57 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /todos/{id}/status:
+    patch:
+      tags:
+        - todos
+      operationId: updateStatus
+      summary: Update status of a todo item
+      description: |
+        Allowed status transitions:
+        - `not_done` → `done`
+        - `done` → `not_done`
+        Transitions from/to `past_due` are not allowed and return 409.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStatusDto'
+      responses:
+        '200':
+          description: Todo item updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoItemDto'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Todo item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Cannot change status of a past due item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /todos/{id}/description:
-    put:
+    patch:
       tags:
         - todos
       operationId: updateDescription
@@ -128,70 +177,6 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '409':
           description: Cannot change description of past due item
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /todos/{id}/done:
-    post:
-      tags:
-        - todos
-      operationId: markDone
-      summary: Mark a todo item as done
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '200':
-          description: Todo item marked as done
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TodoItemDto'
-        '404':
-          description: Todo item not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '409':
-          description: Cannot mark past due item as done
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /todos/{id}/not-done:
-    post:
-      tags:
-        - todos
-      operationId: markNotDone
-      summary: Mark a todo item as not done
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '200':
-          description: Todo item not done
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TodoItemDto'
-        '404':
-          description: Todo item not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '409':
-          description: Cannot undo a past due item
           content:
             application/json:
               schema:
@@ -244,6 +229,15 @@ components:
         dueAt:
           type: string
           format: date-time
+    UpdateStatusDto:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/TodoStatusDto'
+      description: |
+        Fields to update on the todo item. At least one field must be provided.
+        Note: `past_due` is not a valid value for status in this context,
+        as it is set automatically by the system.
     UpdateDescriptionDto:
       type: object
       required:
@@ -252,7 +246,6 @@ components:
         description:
           type: string
           minLength: 1
-
     ErrorResponse:
       type: object
       required:
