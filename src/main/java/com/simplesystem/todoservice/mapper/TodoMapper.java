@@ -34,5 +34,8 @@ public interface TodoMapper {
     default TodoStatus mapToStatus(String status) {
         return status != null ? TodoStatus.valueOf(status.toUpperCase()) : null;
     }
+    default TodoStatus mapToStatus(TodoStatusDto status) {
+        return status != null ? TodoStatus.valueOf(status.name()) : null;
+    }
 }
 

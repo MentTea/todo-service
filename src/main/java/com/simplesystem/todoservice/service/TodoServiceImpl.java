@@ -53,6 +53,26 @@ public class TodoServiceImpl implements TodoService {
     }
 
     @Override
+    public TodoItem updateStatus(Long id, TodoStatus statusToUpdate) {
+        if (statusToUpdate == TodoStatus.PAST_DUE) {
+            throw new IllegalArgumentException(String.format("Status for todo item with id '%d' can not be updated to 'past_due' via the respective endpoints", id));
+        }
+        val item = repository.findById(id).orElseThrow(() -> new TodoNotFoundException(id));
+
+        if (item.getStatus() == TodoStatus.PAST_DUE) {
+            throw new PastDueModificationNotAllowedException(id);
+        }
+        item.setStatus(statusToUpdate);
+
+        if (statusToUpdate == TodoStatus.DONE) {
+            item.setDoneAt(OffsetDateTime.now(clock));
+        } else {
+            item.setDoneAt(null);
+        }
+        return repository.save(item);
+    }
+
+    @Override
     public TodoItem updateDescription(Long id, String description) {
         val item = repository.findById(id).orElseThrow(() -> new TodoNotFoundException(id));
 
@@ -60,30 +80,6 @@ public class TodoServiceImpl implements TodoService {
             throw new PastDueModificationNotAllowedException(id);
         }
         item.setDescription(description);
-        return repository.save(item);
-    }
-
-    @Override
-    public TodoItem markDone(Long id) {
-        val item = repository.findById(id).orElseThrow(() -> new TodoNotFoundException(id));
-
-        if (item.getStatus() == TodoStatus.PAST_DUE) {
-            throw new PastDueModificationNotAllowedException(id);
-        }
-        item.setStatus(TodoStatus.DONE);
-        item.setDoneAt(OffsetDateTime.now(clock));
-        return repository.save(item);
-    }
-
-    @Override
-    public TodoItem markNotDone(Long id) {
-        val item = repository.findById(id).orElseThrow(() -> new TodoNotFoundException(id));
-
-        if (item.getStatus() == TodoStatus.PAST_DUE) {
-            throw new PastDueModificationNotAllowedException(id);
-        }
-        item.setStatus(TodoStatus.NOT_DONE);
-        item.setDoneAt(null);
         return repository.save(item);
     }
 

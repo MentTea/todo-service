@@ -63,21 +63,21 @@ class TodoServiceImplTest {
     }
 
     @Test
-    void markDone_setsDoneAtAndStatus() {
+    void updateStatus_setsDoneAtAndStatus() {
         val existing = new TodoItem();
         existing.setId(1L);
         existing.setStatus(TodoStatus.NOT_DONE);
         when(repository.findById(1L)).thenReturn(Optional.of(existing));
         when(repository.save(any(TodoItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        var result = service.markDone(1L);
+        var result = service.updateStatus(1L, TodoStatus.DONE);
 
         assertThat(result.getStatus()).isEqualTo(TodoStatus.DONE);
         assertThat(result.getDoneAt()).isEqualTo(OffsetDateTime.now(clock));
     }
 
     @Test
-    void markNotDone_resetsDoneAtAndStatus() {
+    void updateStatus_resetsDoneAtAndStatus() {
         val existing = new TodoItem();
         existing.setId(1L);
         existing.setStatus(TodoStatus.DONE);
@@ -85,10 +85,64 @@ class TodoServiceImplTest {
         when(repository.findById(1L)).thenReturn(Optional.of(existing));
         when(repository.save(any(TodoItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        val result = service.markNotDone(1L);
+        val result = service.updateStatus(1L, TodoStatus.NOT_DONE);
 
         assertThat(result.getStatus()).isEqualTo(TodoStatus.NOT_DONE);
         assertThat(result.getDoneAt()).isNull();
+    }
+
+    @Test
+    void updateDescription_updatesDescriptionSuccessfully() {
+        val existing = new TodoItem();
+        existing.setId(1L);
+        existing.setDescription("old description");
+        existing.setStatus(TodoStatus.NOT_DONE);
+        when(repository.findById(1L)).thenReturn(Optional.of(existing));
+        when(repository.save(any(TodoItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        val result = service.updateDescription(1L, "new description");
+
+        assertThat(result.getDescription()).isEqualTo("new description");
+        assertThat(result.getId()).isEqualTo(1L);
+        assertThat(result.getStatus()).isEqualTo(TodoStatus.NOT_DONE);
+        verify(repository).save(existing);
+    }
+
+    @Test
+    void updateDescription_throwsWhenTodoNotFound() {
+        when(repository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.updateDescription(99L, "new description"))
+                .isInstanceOf(TodoNotFoundException.class);
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void updateDescription_throwsWhenTodoPastDue() {
+        val existing = new TodoItem();
+        existing.setId(1L);
+        existing.setStatus(TodoStatus.PAST_DUE);
+        when(repository.findById(1L)).thenReturn(Optional.of(existing));
+
+        assertThatThrownBy(() -> service.updateDescription(1L, "new description"))
+                .isInstanceOf(PastDueModificationNotAllowedException.class);
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void updateDescription_updatesDescriptionForDoneTodo() {
+        val existing = new TodoItem();
+        existing.setId(1L);
+        existing.setDescription("old description");
+        existing.setStatus(TodoStatus.DONE);
+        when(repository.findById(1L)).thenReturn(Optional.of(existing));
+        when(repository.save(any(TodoItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        val result = service.updateDescription(1L, "updated description");
+
+        assertThat(result.getDescription()).isEqualTo("updated description");
+        assertThat(result.getStatus()).isEqualTo(TodoStatus.DONE);
+        verify(repository).save(existing);
     }
 
     @Test
@@ -100,9 +154,9 @@ class TodoServiceImplTest {
 
         assertThatThrownBy(() -> service.updateDescription(1L, "x"))
                 .isInstanceOf(PastDueModificationNotAllowedException.class);
-        assertThatThrownBy(() -> service.markDone(1L))
+        assertThatThrownBy(() -> service.updateStatus(1L, TodoStatus.DONE))
                 .isInstanceOf(PastDueModificationNotAllowedException.class);
-        assertThatThrownBy(() -> service.markNotDone(1L))
+        assertThatThrownBy(() -> service.updateStatus(1L, TodoStatus.NOT_DONE))
                 .isInstanceOf(PastDueModificationNotAllowedException.class);
     }
 
