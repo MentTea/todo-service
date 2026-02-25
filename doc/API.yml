@@ -34,7 +34,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/TodoItemDto'
         '400':
-          description: Validation error
+          description: Validation error (e.g. missing required fields, or dueAt is in the past)
           content:
             application/json:
               schema:
@@ -229,6 +229,7 @@ components:
         dueAt:
           type: string
           format: date-time
+          description: Due date and time for the todo item. Must not be in the past.
     UpdateStatusDto:
       type: object
       properties:
