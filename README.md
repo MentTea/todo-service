@@ -62,6 +62,10 @@ Run the container:
 ```bash
 docker run --rm -p 8080:8080 todo-service:1.0.0
 ```
+Result of tests:
+
+![result_of_tests.png](doc/images/result_of_tests.jpg)
+
 ### Assumptions
 
 - No authentication or authorization is required.
