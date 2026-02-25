@@ -1,6 +1,8 @@
 package com.simplesystem.todoservice.service;
 
+import com.simplesystem.todoservice.exception.DueDateInThePastException;
 import com.simplesystem.todoservice.exception.PastDueModificationNotAllowedException;
+import com.simplesystem.todoservice.exception.PastDueToUpdateStatusException;
 import com.simplesystem.todoservice.exception.TodoNotFoundException;
 import com.simplesystem.todoservice.model.TodoItem;
 import com.simplesystem.todoservice.model.TodoStatus;
@@ -26,6 +28,9 @@ public class TodoServiceImpl implements TodoService {
 
     @Override
     public TodoItem createTodo(String description, OffsetDateTime dueAt) {
+        if (dueAt.isBefore(OffsetDateTime.now())) {
+            throw new DueDateInThePastException();
+        }
         val item = new TodoItem();
         item.setDescription(description);
         item.setDueAt(dueAt);
@@ -55,7 +60,7 @@ public class TodoServiceImpl implements TodoService {
     @Override
     public TodoItem updateStatus(Long id, TodoStatus statusToUpdate) {
         if (statusToUpdate == TodoStatus.PAST_DUE) {
-            throw new IllegalArgumentException(String.format("Status for todo item with id '%d' can not be updated to 'past_due' via the respective endpoints", id));
+            throw new PastDueToUpdateStatusException(id);
         }
         val item = repository.findById(id).orElseThrow(() -> new TodoNotFoundException(id));
 

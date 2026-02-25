@@ -1,7 +1,9 @@
 package com.simplesystem.todoservice.api;
 
 import com.simplesystem.todoservice.api.model.ErrorResponse;
+import com.simplesystem.todoservice.exception.DueDateInThePastException;
 import com.simplesystem.todoservice.exception.PastDueModificationNotAllowedException;
+import com.simplesystem.todoservice.exception.PastDueToUpdateStatusException;
 import com.simplesystem.todoservice.exception.TodoNotFoundException;
 import lombok.val;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -19,6 +21,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(TodoNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFound(TodoNotFoundException ex) {
         return buildError(HttpStatus.NOT_FOUND, "NOT_FOUND", ex.getMessage());
+    }
+
+    @ExceptionHandler(DueDateInThePastException.class)
+    public ResponseEntity<ErrorResponse> handlePastDue(DueDateInThePastException ex) {
+        return buildError(HttpStatus.BAD_REQUEST, "DUE_DATE_IN_THE_PAST", ex.getMessage());
+    }
+
+    @ExceptionHandler(PastDueToUpdateStatusException.class)
+    public ResponseEntity<ErrorResponse> handlePastDue(PastDueToUpdateStatusException ex) {
+        return buildError(HttpStatus.BAD_REQUEST, "PAST_DUE_TO_UPDATE_STATUS", ex.getMessage());
     }
 
     @ExceptionHandler(PastDueModificationNotAllowedException.class)

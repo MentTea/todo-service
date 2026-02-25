@@ -1,6 +1,8 @@
 package com.simplesystem.todoservice.service;
 
+import com.simplesystem.todoservice.exception.DueDateInThePastException;
 import com.simplesystem.todoservice.exception.PastDueModificationNotAllowedException;
+import com.simplesystem.todoservice.exception.PastDueToUpdateStatusException;
 import com.simplesystem.todoservice.exception.TodoNotFoundException;
 import com.simplesystem.todoservice.model.TodoItem;
 import com.simplesystem.todoservice.model.TodoStatus;
@@ -34,7 +36,7 @@ class TodoServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        clock = Clock.fixed(Instant.parse("2025-01-01T10:00:00Z"), ZoneOffset.UTC);
+        clock = Clock.fixed(Instant.now(), ZoneOffset.UTC);
         service = new TodoServiceImpl(repository, clock);
     }
 
@@ -180,6 +182,86 @@ class TodoServiceImplTest {
         assertThat(captor.getValue())
                 .extracting(TodoItem::getStatus)
                 .containsOnly(TodoStatus.PAST_DUE);
+    }
+
+    // DueDateInThePastException tests
+    @Test
+    void createTodo_throwsWhenDueDateInPast() {
+        val pastDate = OffsetDateTime.now(clock).minusDays(1);
+
+        assertThatThrownBy(() -> service.createTodo("test", pastDate))
+                .isInstanceOf(DueDateInThePastException.class)
+                .hasMessage("Due date must not be in the past");
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void createTodo_throwsWhenDueDateIsNow() {
+        val nowDate = OffsetDateTime.now(clock);
+
+        assertThatThrownBy(() -> service.createTodo("test", nowDate))
+                .isInstanceOf(DueDateInThePastException.class)
+                .hasMessage("Due date must not be in the past");
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void createTodo_successWhenDueDateInFuture() {
+        val futureDate = OffsetDateTime.now(clock).plusDays(1);
+        var saved = new TodoItem();
+        saved.setId(1L);
+        saved.setDescription("test");
+        saved.setStatus(TodoStatus.NOT_DONE);
+        saved.setDueAt(futureDate);
+        saved.setCreatedAt(OffsetDateTime.now(clock));
+        when(repository.save(any(TodoItem.class))).thenReturn(saved);
+
+        val result = service.createTodo("test", futureDate);
+
+        assertThat(result.getId()).isEqualTo(1L);
+        assertThat(result.getStatus()).isEqualTo(TodoStatus.NOT_DONE);
+        assertThat(result.getDueAt()).isEqualTo(futureDate);
+        verify(repository).save(any(TodoItem.class));
+    }
+
+    // PastDueToUpdateStatusException tests
+    @Test
+    void updateStatus_throwsWhenUpdatingToPastDue() {
+        val existing = new TodoItem();
+        existing.setId(1L);
+        existing.setStatus(TodoStatus.NOT_DONE);
+
+        assertThatThrownBy(() -> service.updateStatus(1L, TodoStatus.PAST_DUE))
+                .isInstanceOf(PastDueToUpdateStatusException.class)
+                .hasMessage("Status for todo item with id '1' can not be updated to 'past_due' via the respective endpoints");
+        verify(repository, never()).findById(any());
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void updateStatus_throwsWhenUpdatingToPastDueWithHighId() {
+        val highId = 999999L;
+
+        assertThatThrownBy(() -> service.updateStatus(highId, TodoStatus.PAST_DUE))
+                .isInstanceOf(PastDueToUpdateStatusException.class)
+                .hasMessage("Status for todo item with id '999999' can not be updated to 'past_due' via the respective endpoints");
+        verify(repository, never()).findById(any());
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void updateStatus_successWhenNotUpdatingToPastDue() {
+        val existing = new TodoItem();
+        existing.setId(1L);
+        existing.setStatus(TodoStatus.DONE);
+        when(repository.findById(1L)).thenReturn(Optional.of(existing));
+        when(repository.save(any(TodoItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        val result = service.updateStatus(1L, TodoStatus.NOT_DONE);
+
+        assertThat(result.getStatus()).isEqualTo(TodoStatus.NOT_DONE);
+        verify(repository).findById(1L);
+        verify(repository).save(existing);
     }
 }
 
