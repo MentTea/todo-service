@@ -5,7 +5,6 @@ import com.simplesystem.todoservice.api.model.CreateTodoDto;
 import com.simplesystem.todoservice.api.model.TodoItemDto;
 import com.simplesystem.todoservice.api.model.UpdateDescriptionDto;
 import com.simplesystem.todoservice.mapper.TodoMapper;
-import com.simplesystem.todoservice.model.TodoStatus;
 import com.simplesystem.todoservice.service.TodoService;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
