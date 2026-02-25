@@ -11,7 +11,6 @@ import org.openapitools.jackson.nullable.JsonNullable;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Locale;
 
 @Mapper
 public interface TodoMapper {
