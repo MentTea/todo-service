@@ -62,50 +62,6 @@ Run the container:
 ```bash
 docker run --rm -p 8080:8080 todo-service:1.0.0
 ```
-
-### Example curl calls
-
-- **Create todo**:
-
-```bash
-curl -X POST "http://localhost:8080/api/todos" \
-  -H "Content-Type: application/json" \
-  -d '{"description":"Buy milk","dueAt":"2030-01-01T10:00:00Z"}'
-```
-
-- **Get by id**:
-
-```bash
-curl "http://localhost:8080/api/todos/1"
-```
-
-- **Update description**:
-
-```bash
-curl -X PUT "http://localhost:8080/api/todos/1/description" \
-  -H "Content-Type: application/json" \
-  -d '{"description":"Buy milk and bread"}'
-```
-
-- **Mark done**:
-
-```bash
-curl -X POST "http://localhost:8080/api/todos/1/done"
-```
-
-- **Undo**:
-
-```bash
-curl -X POST "http://localhost:8080/api/todos/1/undo"
-```
-
-- **List todos** (all / only not done):
-
-```bash
-curl "http://localhost:8080/api/todos"
-curl "http://localhost:8080/api/todos?status=not_done"
-```
-
 ### Assumptions
 
 - No authentication or authorization is required.
