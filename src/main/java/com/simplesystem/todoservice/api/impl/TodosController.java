@@ -43,10 +43,7 @@ public class TodosController implements TodosApi {
 
     @Override
     public ResponseEntity<List<TodoItemDto>> listTodos(List<String> statuses) {
-        val convertedStatuses = statuses.stream()
-                .map(s -> TodoStatus.valueOf(s.toUpperCase()))
-                .toList();
-        val items = todoService.listTodos(convertedStatuses)
+        val items = todoService.listTodos(todoMapper.mapToStatuses(statuses))
                 .stream()
                 .map(todoMapper::mapToDto)
                 .collect(Collectors.toList());

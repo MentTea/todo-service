@@ -10,6 +10,8 @@ import org.mapstruct.Named;
 import org.openapitools.jackson.nullable.JsonNullable;
 
 import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Locale;
 
 @Mapper
 public interface TodoMapper {
@@ -26,6 +28,12 @@ public interface TodoMapper {
     @Named("mapJsonNullable")
     default JsonNullable<OffsetDateTime> mapJsonNullable(OffsetDateTime value) {
         return value != null ? JsonNullable.of(value) : JsonNullable.undefined();
+    }
+
+    List<TodoStatus> mapToStatuses(List<String> receivedStatuses);
+
+    default TodoStatus mapToStatus(String status) {
+        return status != null ? TodoStatus.valueOf(status.toUpperCase()) : null;
     }
 }
 
